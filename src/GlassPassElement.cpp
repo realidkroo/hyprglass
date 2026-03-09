@@ -28,9 +28,6 @@ std::optional<CBox> CGlassPassElement::boundingBox() {
     if (!box)
         return std::nullopt;
 
-    // Expand by our sampling padding so the render pass damages the full
-    // area we read from. Without this, wallpaper outside the window box
-    // but inside our padding isn't re-rendered, leaving stale content.
     const float padding = CGlassDecoration::SAMPLE_PADDING_PX / monitor->m_scale;
     box->expand(padding);
     return box;
@@ -45,5 +42,5 @@ bool CGlassPassElement::needsPrecomputeBlur() {
 }
 
 bool CGlassPassElement::disableSimplification() {
-    return true;
+    return m_data.decoration && m_data.decoration->needsResample();
 }

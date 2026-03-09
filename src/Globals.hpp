@@ -7,20 +7,16 @@
 #include <hyprland/src/render/Framebuffer.hpp>
 #include <memory>
 #include <string_view>
-#include <vector>
+#include <unordered_map>
 
 class CGlassDecoration;
 
 struct SGlobalState {
-    std::vector<WP<CGlassDecoration>> decorations;
-    CShaderManager                    shaderManager;
-    SPluginConfig                     config;
-
-    // User-defined presets (populated from config keyword, swapped in on configReloaded)
-    std::unordered_map<std::string, SCustomPreset> customPresets;
-
-    // Shared blur temp framebuffer (reused across all decorations since they render sequentially)
-    CFramebuffer blurTempFramebuffer;
+    std::vector<WP<CGlassDecoration>>        decorations;
+    CShaderManager                           shaderManager;
+    SPluginConfig                            config;
+    std::unordered_map<std::string, SPreset> presets; // named per-window overrides
+    CFramebuffer                             blurTempFramebuffer;
 };
 
 inline HANDLE                        PHANDLE = nullptr;

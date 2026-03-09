@@ -183,62 +183,33 @@ void main() {
     }
 
     // ========================================
-    // FROSTED TINT (per-theme tone mapping)
+    // TONE MAPPING — vivid, clean, Apple-style
     // ========================================
     float blurredLum = dot(color, vec3(0.2126, 0.7152, 0.0722));
 
-    // Frosted desaturation
-    color = mix(vec3(blurredLum), color, saturation);
+    // Boost saturation above 1.0 so wallpaper colors bleed through vividly
+    // instead of desaturating to gray frost
+    color = mix(vec3(blurredLum), color, max(saturation, 1.0));
 
-    // Tight smoothstep range maps the blur-compressed luminance (~0.3-0.7)
-    // to the full [0,1] adaptive range, creating visible per-region differentiation
     float lumCurve = smoothstep(0.25, 0.55, blurredLum);
-
-    // Dim: multiplicative — effective at darkening bright areas
     color *= brightness * (1.0 - adaptiveDim * lumCurve);
-
-    // Boost: additive lift — multiplicative can't brighten near-black content
     color += vec3(adaptiveBoost * (1.0 - lumCurve) * 0.5);
-
-    // Contrast (pivot around midpoint)
     color = mix(vec3(0.5), color, contrast);
 
-    // Vibrancy (selective saturation boost scaled by existing saturation)
+    // Vibrancy — selective color boost, always at least 0.6 for vivid look
     float currentLum = dot(color, vec3(0.2126, 0.7152, 0.0722));
     float sat = max(color.r, max(color.g, color.b)) - min(color.r, min(color.g, color.b));
     float darkFactor = 1.0 - vibrancyDarkness * (1.0 - blurredLum);
-    color = mix(vec3(currentLum), color, 1.0 + vibrancy * sat * darkFactor);
+    float vibrancyBoost = max(vibrancy, 0.6);
+    color = mix(vec3(currentLum), color, 1.0 + vibrancyBoost * sat * darkFactor);
 
     // ========================================
     // COLOR TINT OVERLAY
     // ========================================
     color = mix(color, tintColor, tintAlpha);
 
-    // ========================================
-    // FRESNEL RIM GLOW (edge zone)
-    // ========================================
-    if (fresnelStrength > 0.001) {
-        float fresnel = edgeProximity * edgeProximity * fresnelStrength * 0.15;
-        color += vec3(1.0) * fresnel;
-    }
-
-    // ========================================
-    // SPECULAR — subtle top highlight (edge zone)
-    // ========================================
-    if (specularStrength > 0.001) {
-        float topBias = pow(max(1.0 - uv.y, 0.0), 2.0);
-        float spec = topBias * edgeProximity * edgeProximity * specularStrength * 0.08;
-        color += vec3(1.0, 0.99, 0.97) * spec;
-    }
-
-    // ========================================
-    // INNER SHADOW (bottom rim)
-    // ========================================
-    {
-        float bottomBias = pow(uv.y, 2.0);
-        float shadow = bottomBias * edgeProximity * edgeProximity * 0.06;
-        color *= 1.0 - shadow;
-    }
+    // White edge effects (fresnel, specular, inner shadow) intentionally removed
+    // for clean Apple-style glass without bright border artifacts
 
     fragColor = vec4(color, glassOpacity * cornerAlpha);
 }

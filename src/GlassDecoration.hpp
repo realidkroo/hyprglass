@@ -25,27 +25,24 @@ class CGlassDecoration : public IHyprWindowDecoration {
     void                    renderPass(PHLMONITOR monitor, const float& alpha);
 
     WP<CGlassDecoration> m_self;
-
     static constexpr int SAMPLE_PADDING_PX = 60;
 
   private:
     PHLWINDOWREF m_window;
     CFramebuffer m_sampleFramebuffer;
     Vector2D     m_samplePaddingRatio;
+    Vector2D     m_lastPosition;
+    Vector2D     m_lastSize;
+    bool         m_needsResample = true;
 
-    // Track last rendered position/size to detect actual changes and seed damage
-    Vector2D m_lastPosition;
-    Vector2D m_lastSize;
+  [[nodiscard]] SPreset resolveWindowPreset() const;
+  [[nodiscard]] bool    hasGlassTag() const;
 
-    [[nodiscard]] bool        resolveThemeIsDark() const;
-    [[nodiscard]] std::string resolvePresetName() const;
-
+    void uploadUniforms(const SPreset& p) const;
     void sampleBackground(CFramebuffer& sourceFramebuffer, CBox box);
     void blurBackground(float radius, int iterations, GLuint callerFramebufferID, int viewportWidth, int viewportHeight);
-
     void applyGlassEffect(CFramebuffer& sourceFramebuffer, CFramebuffer& targetFramebuffer,
-                          CBox& rawBox, CBox& transformedBox, float windowAlpha);
-    void uploadThemeUniforms(const SResolveContext& resolveContext) const;
+                          CBox& rawBox, CBox& transformedBox, float windowAlpha, const SPreset& p);
 
     friend class CGlassPassElement;
 };
