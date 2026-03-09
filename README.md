@@ -1,4 +1,5 @@
 # HyprGlass - Liquid Glass inspired plugin for Hyprland
+67 edition
 
 Liquid Glass for [Hyprland](https://hyprland.org/).
 
